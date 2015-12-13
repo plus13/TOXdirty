@@ -1,0 +1,7 @@
+include pytox/*.c
+include pytox/*.h
+include tests/*.py
+include examples/*.py
+include README.rst
+include COPYING
+include MANIFEST.in
