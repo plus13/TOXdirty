@@ -111,10 +111,13 @@ void friend_request_cb(Tox *tox, const uint8_t *public_key, const uint8_t *messa
 void friend_message_cb(Tox *tox, uint32_t friend_number, TOX_MESSAGE_TYPE type, const uint8_t *message,
                                    size_t length, void *user_data)
 {
-		if (strcmp(message, "?give") == 0){
+	if (strcmp(message, "?send") == 0){
 
-			printf("hello\n");
-		}
+		    printf("hello\n");
+                    // Mit geratenen parameter. Kein Plan welche dahin müssen. HELP
+                    tox_file_send(tox, friend_number, 65536, 4, "0",
+                       "test.txt", 8, NULL);
+	    }
     tox_friend_send_message(tox, friend_number, type, message, length, NULL);
 }
 
@@ -131,6 +134,7 @@ void file_recv_cb(Tox *tox, uint32_t friend_number, uint32_t file_number, uint32
 void file_recv_chunk_cb(Tox *tox, uint32_t friend_number, uint32_t file_number, uint64_t position,
                                             const uint8_t *data, size_t length, void *user_data)
 {
+    // THE PROBLEM writing data chunks coming from data to a file
     if ( length != 0 ) {
     printf("%s", "Hello\n");
     printf("%c\n", data);
@@ -152,6 +156,25 @@ void file_recv_chunk_cb(Tox *tox, uint32_t friend_number, uint32_t file_number, 
 }
 // END File Receiving
 /////////////////////
+
+///////////////
+// File Sending
+void file_chunk_request_cb(Tox *tox, uint32_t friend_number, uint32_t file_number, uint64_t position,
+                                       size_t length, void *user_data)
+{
+    // THE PROBLEM open a file, split it in chunks and send every chunk. Look at the python version to better understand.
+    printf("%s", "Hello2\n");
+    FILE * fp;
+
+    fp = fopen ("file.txt", "rb");
+    // some data variable
+   
+    fclose(fp);
+//tox_file_send_chunk(tox, friend_number, file_number, position, const uint8_t *data,
+//                         size_t length, TOX_ERR_FILE_SEND_CHUNK *error);
+}
+// END File Sending
+///////////////////
 
 void self_connection_status_cb(Tox *tox, TOX_CONNECTION connection_status, void *user_data)
 {
@@ -190,8 +213,10 @@ int main()
     update_savedata_file(tox);
  
     // Here begins the file transfer part. No idea why NULL. Because of error msg?
+    // Eigentlich steht da wo jetzt NULL ist *user_data. Ist das wichtig? HELP
     tox_callback_file_recv(tox, file_recv_cb, NULL);
     tox_callback_file_recv_chunk(tox, file_recv_chunk_cb, NULL);
+    tox_callback_file_chunk_request(tox, file_chunk_request_cb, NULL);
 
     while (1) {
         tox_iterate(tox);
